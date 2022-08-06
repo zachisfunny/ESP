@@ -1,1 +1,1 @@
-loadstring(game:HttpGet(('https://raw.githubusercontent.com/zachisfunny/ESP/main/Script'),true))()
+local esp = loadstring(game:HttpGet(('https://raw.githubusercontent.com/zachisfunny/ESP/main/Script'),true))()
