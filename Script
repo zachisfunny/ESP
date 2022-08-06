@@ -1,6 +1,4 @@
-if getgenv().esp ~= nil then
-    getgenv().esp:Unload();
-end
+
 
 local esp = {
     enabled        = false;
@@ -28,11 +26,14 @@ local esp = {
     angle          = {false, Color3.new(1,1,1), 1};
     arrow          = {false, Color3.new(1,1,1), 1};
     chams          = {false, Color3.new(1,1,1), Color3.new(1,1,1), 1, 1, true};
-    textlayout     = {
+    NameESP     = {
         ['Name']     = {Position = 'top', Enabled = false, Color = Color3.new(1,1,1), Transparency = 0};
-        ['Distance'] = {Position = 'bottom', Enabled = false, Default = 'NaN', Suffix = 'm', Color = Color3.new(1,1,1), Transparency = 0};
-        ['Tool']     = {Position = 'bottom', Enabled = false, Default = 'None', Color = Color3.new(1,1,1), Transparency = 0};
-        ['Health']   = {Position = 'left', Enabled = false, IgnoreTarget = true, Default = 'NaN', Color = Color3.new(1,1,1), Transparency = 0};
+        };
+      DistanceESP     = {   ['Distance'] = {Position = 'bottom', Enabled = false, Default = 'NaN', Suffix = 'm', Color = Color3.new(1,1,1), Transparency = 0};
+          };
+     ToolESP     = {  ['Tool']     = {Position = 'bottom', Enabled = false, Default = 'None', Color = Color3.new(1,1,1), Transparency = 0};
+           };
+     HealthESP     = {   ['Health']   = {Position = 'left', Enabled = false, IgnoreTarget = true, Default = 'NaN', Color = Color3.new(1,1,1), Transparency = 0};
     };
     barlayout      = {
         ['Health']   = {Position = 'left', Enabled = false, Color1 = Color3.new(1,0,0), Color2 = Color3.new(0,1,0), Transparency = 0};
@@ -105,7 +106,16 @@ function esp:AddPlayer(plr)
         text = {};
         bar = {};
     };
-    for i,v in next, self.textlayout do
+    for i,v in next, self.NameESP do
+        data.text[i] = {NewDrawing('Text', {ZIndex = 1}), NewDrawing('Text', {ZIndex = 1}), order = v.Order or 0}
+    end
+     for i,v in next, self.DistanceESP do
+        data.text[i] = {NewDrawing('Text', {ZIndex = 1}), NewDrawing('Text', {ZIndex = 1}), order = v.Order or 0}
+     end
+ for i,v in next, self.ToolESP do
+        data.text[i] = {NewDrawing('Text', {ZIndex = 1}), NewDrawing('Text', {ZIndex = 1}), order = v.Order or 0}
+ end
+ for i,v in next, self.HealthESP do
         data.text[i] = {NewDrawing('Text', {ZIndex = 1}), NewDrawing('Text', {ZIndex = 1}), order = v.Order or 0}
     end
     for i,v in next, self.barlayout  do
@@ -119,9 +129,18 @@ function esp:AddPlayer(plr)
         end
     end
 
-    table.sort(self.textlayout, function(a,b)
+    table.sort(self.NameESP, function(a,b)
         return a.order > b.order
     end)
+ table.sort(self.DistanceESP, function(a,b)
+        return a.order > b.order
+ end)
+ table.sort(self.ToolESP, function(a,b)
+        return a.order > b.order
+ end)
+ table.sort(self.HealthESP, function(a,b)
+        return a.order > b.order
+ end)
 
     table.sort(self.barlayout, function(a,b)
         return a.order > b.order
@@ -473,7 +492,98 @@ end
                 end
             end
 
-            for name, default in next, esp.textlayout do
+            for name, default in next, esp.NameESP do
+                local drawing = drawings.text[name];
+                local textinfo = textinfo[name];
+                if drawing ~= nil and textinfo ~= nil then
+                    drawing[1].Visible = default.Enabled
+                    drawing[2].Visible = drawing[1].Visible and esp.boldtext;
+                    if drawing[1].Visible then
+                        drawing[1].Text         = tostring(textinfo.text ~= nil and textinfo.text or default.Default or name)..(typeof(default.Suffix) == 'string' and default.Suffix or '');
+                        drawing[1].Color        = (not default.IgnoreTarget and color or nil) or textinfo.color or default.Color or newColor3(1,1,1);
+                        drawing[1].Transparency = transparency;
+                        drawing[1].Center       = (default.Position == 'top' or default.Position == 'bottom')
+                        drawing[1].Outline      = esp.outline[1];
+                        drawing[1].OutlineColor = esp.outline[2];
+                        drawing[1].Font         = esp.textfont;
+                        drawing[1].Size         = esp.textsize;
+
+                        local textBounds = drawing[1].TextBounds;
+
+                        drawing[1].Position = position + (
+                            default.Position == 'top'    and newVector2(size.X / 2, - (textBounds.Y + padding + topOptionPos)) or
+                            default.Position == 'bottom' and newVector2(size.X / 2, size.Y + padding + bottomOptionPos) or
+                            default.Position == 'left'   and newVector2(-(textBounds.X + padding + leftBarPos + (esp.outline[1] and 2 or 0)), - (2 + padding) + leftTextPos + padding) or
+                            newVector2(size.X + padding + rightBarPos + (esp.outline[1] and 2 or 0), - (2 + padding) + rightTextPos + padding)
+                        )
+
+                        if drawing[2].Visible then
+                            drawing[2].Position     = drawing[1].Position + newVector2(1,0);
+                            drawing[2].Transparency = drawing[1].Transparency
+                            drawing[2].Color        = drawing[1].Color;
+                            drawing[2].OutlineColor = drawing[1].OutlineColor;
+                            drawing[2].Size         = drawing[1].Size;
+                            drawing[2].Text         = drawing[1].Text;
+                            drawing[2].Font         = drawing[1].Font;
+                            drawing[2].Center       = drawing[1].Center;
+                            drawing[2].Outline      = false
+                        end
+                        
+                        if default.Position == 'top' then topOptionPos = topOptionPos + padding + textBounds.Y
+                        elseif default.Position == 'bottom' then bottomOptionPos = bottomOptionPos + padding + textBounds.Y
+                        elseif default.Position == 'left' then leftTextPos = leftTextPos + padding + textBounds.Y
+                        elseif default.Position == 'right' then rightBarPos = rightBarPos + padding + textBounds.Y
+                        end
+                    end
+                end
+         
+            end
+             for name, default in next, esp.DistanceESP do
+                local drawing = drawings.text[name];
+                local textinfo = textinfo[name];
+                if drawing ~= nil and textinfo ~= nil then
+                    drawing[1].Visible = default.Enabled
+                    drawing[2].Visible = drawing[1].Visible and esp.boldtext;
+                    if drawing[1].Visible then
+                        drawing[1].Text         = tostring(textinfo.text ~= nil and textinfo.text or default.Default or name)..(typeof(default.Suffix) == 'string' and default.Suffix or '');
+                        drawing[1].Color        = (not default.IgnoreTarget and color or nil) or textinfo.color or default.Color or newColor3(1,1,1);
+                        drawing[1].Transparency = transparency;
+                        drawing[1].Center       = (default.Position == 'top' or default.Position == 'bottom')
+                        drawing[1].Outline      = esp.outline[1];
+                        drawing[1].OutlineColor = esp.outline[2];
+                        drawing[1].Font         = esp.textfont;
+                        drawing[1].Size         = esp.textsize;
+
+                        local textBounds = drawing[1].TextBounds;
+
+                        drawing[1].Position = position + (
+                            default.Position == 'top'    and newVector2(size.X / 2, - (textBounds.Y + padding + topOptionPos)) or
+                            default.Position == 'bottom' and newVector2(size.X / 2, size.Y + padding + bottomOptionPos) or
+                            default.Position == 'left'   and newVector2(-(textBounds.X + padding + leftBarPos + (esp.outline[1] and 2 or 0)), - (2 + padding) + leftTextPos + padding) or
+                            newVector2(size.X + padding + rightBarPos + (esp.outline[1] and 2 or 0), - (2 + padding) + rightTextPos + padding)
+                        )
+
+                        if drawing[2].Visible then
+                            drawing[2].Position     = drawing[1].Position + newVector2(1,0);
+                            drawing[2].Transparency = drawing[1].Transparency
+                            drawing[2].Color        = drawing[1].Color;
+                            drawing[2].OutlineColor = drawing[1].OutlineColor;
+                            drawing[2].Size         = drawing[1].Size;
+                            drawing[2].Text         = drawing[1].Text;
+                            drawing[2].Font         = drawing[1].Font;
+                            drawing[2].Center       = drawing[1].Center;
+                            drawing[2].Outline      = false
+                        end
+                        
+                        if default.Position == 'top' then topOptionPos = topOptionPos + padding + textBounds.Y
+                        elseif default.Position == 'bottom' then bottomOptionPos = bottomOptionPos + padding + textBounds.Y
+                        elseif default.Position == 'left' then leftTextPos = leftTextPos + padding + textBounds.Y
+                        elseif default.Position == 'right' then rightBarPos = rightBarPos + padding + textBounds.Y
+                        end
+                    end
+                end
+             end
+            for name, default in next, esp.ToolESP do
                 local drawing = drawings.text[name];
                 local textinfo = textinfo[name];
                 if drawing ~= nil and textinfo ~= nil then
@@ -518,6 +628,51 @@ end
                     end
                 end
             end
+             for name, default in next, esp.HealthESP do
+                local drawing = drawings.text[name];
+                local textinfo = textinfo[name];
+                if drawing ~= nil and textinfo ~= nil then
+                    drawing[1].Visible = default.Enabled
+                    drawing[2].Visible = drawing[1].Visible and esp.boldtext;
+                    if drawing[1].Visible then
+                        drawing[1].Text         = tostring(textinfo.text ~= nil and textinfo.text or default.Default or name)..(typeof(default.Suffix) == 'string' and default.Suffix or '');
+                        drawing[1].Color        = (not default.IgnoreTarget and color or nil) or textinfo.color or default.Color or newColor3(1,1,1);
+                        drawing[1].Transparency = transparency;
+                        drawing[1].Center       = (default.Position == 'top' or default.Position == 'bottom')
+                        drawing[1].Outline      = esp.outline[1];
+                        drawing[1].OutlineColor = esp.outline[2];
+                        drawing[1].Font         = esp.textfont;
+                        drawing[1].Size         = esp.textsize;
+
+                        local textBounds = drawing[1].TextBounds;
+
+                        drawing[1].Position = position + (
+                            default.Position == 'top'    and newVector2(size.X / 2, - (textBounds.Y + padding + topOptionPos)) or
+                            default.Position == 'bottom' and newVector2(size.X / 2, size.Y + padding + bottomOptionPos) or
+                            default.Position == 'left'   and newVector2(-(textBounds.X + padding + leftBarPos + (esp.outline[1] and 2 or 0)), - (2 + padding) + leftTextPos + padding) or
+                            newVector2(size.X + padding + rightBarPos + (esp.outline[1] and 2 or 0), - (2 + padding) + rightTextPos + padding)
+                        )
+
+                        if drawing[2].Visible then
+                            drawing[2].Position     = drawing[1].Position + newVector2(1,0);
+                            drawing[2].Transparency = drawing[1].Transparency
+                            drawing[2].Color        = drawing[1].Color;
+                            drawing[2].OutlineColor = drawing[1].OutlineColor;
+                            drawing[2].Size         = drawing[1].Size;
+                            drawing[2].Text         = drawing[1].Text;
+                            drawing[2].Font         = drawing[1].Font;
+                            drawing[2].Center       = drawing[1].Center;
+                            drawing[2].Outline      = false
+                        end
+                        
+                        if default.Position == 'top' then topOptionPos = topOptionPos + padding + textBounds.Y
+                        elseif default.Position == 'bottom' then bottomOptionPos = bottomOptionPos + padding + textBounds.Y
+                        elseif default.Position == 'left' then leftTextPos = leftTextPos + padding + textBounds.Y
+                        elseif default.Position == 'right' then rightBarPos = rightBarPos + padding + textBounds.Y
+                        end
+                    end
+                end
+                end
         end
     end))
 
@@ -534,5 +689,5 @@ end
     end
 -- end
 
-getgenv().esp = esp;
+
 return esp;
