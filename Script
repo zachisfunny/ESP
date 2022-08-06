@@ -29,7 +29,9 @@ local esp = {
     arrow          = {false, Color3.new(1,1,1), 1};
     chams          = {false, Color3.new(1,1,1), Color3.new(1,1,1), 1, 1, true};
     textlayout     = {
+    name = {
         ['Name']     = {Position = 'top', Enabled = false, Color = Color3.new(1,1,1), Transparency = 0};
+        }
         ['Distance'] = {Position = 'bottom', Enabled = false, Default = 'NaN', Suffix = 'm', Color = Color3.new(1,1,1), Transparency = 0};
         ['Tool']     = {Position = 'bottom', Enabled = false, Default = 'None', Color = Color3.new(1,1,1), Transparency = 0};
         ['Health']   = {Position = 'left', Enabled = false, IgnoreTarget = true, Default = 'NaN', Color = Color3.new(1,1,1), Transparency = 0};
